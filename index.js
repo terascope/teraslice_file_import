@@ -50,12 +50,11 @@ function exportFn(msg, logger) {
 
 }
 
-function newSlicer(context, job, retryData) {
-    var opConfig = getOpConfig(job.jobConfig, 'file_import');
-    var jobConfig = job.jobConfig;
+function newSlicer(context, job, retryData, slicerAnalytics, logger) {
+    var opConfig = getOpConfig(job.jobConfig, 'teraslice_file_import');
     var slicers = [];
     //TODO review performance implications
-    getFileNames(jobConfig, opConfig, fileQueue);
+    getFileNames(logger, opConfig, fileQueue);
 
     slicers.push(function() {
         return fileQueue.dequeue()
@@ -90,8 +89,7 @@ function walk(rootDir, callback) {
     });
 }
 
-function getFileNames(jobConfig, opConfig, fileQueue) {
-    var logger = jobConfig.logger;
+function getFileNames(logger, opConfig, fileQueue) {
     logger.info("getting all file paths");
 
     walk(opConfig.path, function(filePath, rootDir, filename) {
