@@ -4,14 +4,50 @@ var Promise = require('bluebird');
 var fs = require("fs");
 var path = require('path');
 var Queue = require('./queue');
+var readline = require('readline');
 
 var fileQueue = new Queue;
 
 function newReader(context, opConfig, jobConfig) {
-    return function(msg) {
-        var data = fs.readFileSync(msg, 'utf-8');
-        return JSON.parse(data);
+    if (opConfig.file_type === 'export') {
+        return exportFn
     }
+    return lineReader
+}
+
+function lineReader(msg, logger) {
+    return new Promise(function(resolve, reject) {
+        var results = [];
+        var rl = readline.createInterface({
+            input: fs.createReadStream(msg)
+        });
+
+        rl.on('line', function(line) {
+            results.push(JSON.parse(line))
+        });
+
+        rl.on('close', function() {
+            resolve(results)
+        });
+
+        rl.on('error', function(err) {
+            logger.error(`Error reading from file: ${msg}, error: ${err.stack}`);
+            reject(err.stack)
+        })
+    })
+
+}
+
+function exportFn(msg, logger) {
+    return new Promise(function(resolve, reject) {
+        fs.readFile(msg, 'utf-8', function(err, data) {
+            if (err) {
+                reject(err.stack)
+            }
+            resolve(JSON.parse(data))
+        });
+    })
+
 }
 
 function newSlicer(context, job, retryData) {
@@ -21,7 +57,9 @@ function newSlicer(context, job, retryData) {
     //TODO review performance implications
     getFileNames(jobConfig, opConfig, fileQueue);
 
-    slicers.push(function() {return fileQueue.dequeue()});
+    slicers.push(function() {
+        return fileQueue.dequeue()
+    });
 
     return Promise.resolve(slicers)
 }
@@ -32,6 +70,11 @@ function schema() {
             doc: 'Path to where the directory is located to read from',
             default: null,
             format: 'required_String'
+        },
+        file_type: {
+            doc: 'Path to where the directory is located to read from',
+            default: "file",
+            format: ["file", "import"]
         }
     };
 }
@@ -60,8 +103,8 @@ function getFileNames(jobConfig, opConfig, fileQueue) {
     logger.info("All file paths have been enqueued");
 }
 
-function getOpConfig(job, name){
-    return job.operations.filter(function(op){
+function getOpConfig(job, name) {
+    return job.operations.filter(function(op) {
         return op._op === name;
     })[0]
 }
