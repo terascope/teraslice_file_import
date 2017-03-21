@@ -26,6 +26,16 @@ Queue.prototype.enqueue = function(value) {
     this._size++;
 };
 
+Queue.prototype.shift = function(value) {
+    var currentNode = this.head;
+    var node = new Node(value, null, currentNode);
+    this.head = node;
+    if (this.tail === null) {
+        this.tail = node;
+    }
+    this._size++;
+};
+
 Queue.prototype.dequeue = function() {
     if (this._size === 0) {
         return null
@@ -46,46 +56,70 @@ Queue.prototype.dequeue = function() {
     return head.value;
 };
 
-Queue.prototype.remove = function(id) {
-
+Queue.prototype.each = function(fn) {
     var currentNode = this.head;
-    var previousNode;
+    if (currentNode) {
+        fn(currentNode.value);
+    }
+    while (currentNode && currentNode.next) {
+        currentNode = currentNode.next;
+        fn(currentNode.value)
+    }
+};
 
-    if (!currentNode || !id) {
+Queue.prototype.remove = function(id, keyForID) {
+    var key = keyForID ? keyForID : 'id';
+    if (this.head === null || !id) {
         return null;
     }
 
-    //move head to correct spot
-    while (currentNode.value.id === id) {
-        this.head = currentNode.next;
-        this._size--;
-
-        if (this.head) {
-            this.head.prev = null;
-        }
-        else {
-            //there is no next, set tail to null
-            this.tail = null;
-            return;
-        }
-        currentNode = currentNode.next;
+    //fast forward head to right spot
+    while (this.head && this.head.value[key] === id) {
+        this.head = this.head.next;
+        this._size -= 1;
     }
 
-    // if it runs here, then head.value.id !== id, so we check rest of queue after it
-    while (currentNode && currentNode.next) {
-        previousNode = currentNode;
-        currentNode = currentNode.next;
+    //if whole list is gone, set tail to null
+    if (this.head === null) {
+        this.tail = null;
+        return;
+    }
 
-        if (currentNode && currentNode.value.id === id) {
-            previousNode.next = currentNode.next;
+    //clean up prev
+    this.head.prev = null;
 
-            if (currentNode.next) {
-                currentNode.next.prev = previousNode;
+
+    //there is anything left in list 
+    if (this.head) {
+        var currentNode = this.head;
+
+        while (currentNode) {
+            var previousNode = currentNode.prev;
+            var nextNode = currentNode.next;
+
+            if (currentNode.value[key] === id) {
+
+                if (nextNode) {
+                    if (previousNode) {
+                        previousNode.next = nextNode;
+                        nextNode.prev = previousNode;
+                    }
+                    else {
+                        nextNode.prev = null;
+                    }
+                }
+                else {
+                    if (previousNode) {
+                        previousNode.next = null;
+                        this.tail = previousNode;
+                    }
+                }
+                this._size--;
+                currentNode = nextNode;
             }
             else {
-                this.tail = previousNode;
+                currentNode = nextNode;
             }
-            this._size--;
         }
     }
 };
