@@ -3,7 +3,7 @@
 var Promise = require('bluebird');
 var fs = require("fs");
 var path = require('path');
-var Queue = require('./queue');
+var Queue = require('queue');
 var readline = require('readline');
 
 var fileQueue = new Queue;
