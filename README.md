@@ -8,7 +8,7 @@ npm install terascope/teraslice_file_import
 
 # Description
 
-Import JSON format data from a file or direcory of files.
+Import JSON format data from a file or directory of files.
 
 # Output
 
