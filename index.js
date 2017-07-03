@@ -9,7 +9,7 @@ var readline = require('readline');
 var fileQueue = new Queue;
 
 function newReader(context, opConfig, jobConfig) {
-    if (opConfig.file_type === 'export') {
+    if (opConfig.format === 'json_array') {
         return exportFn
     }
     return lineReader
@@ -70,10 +70,10 @@ function schema() {
             default: null,
             format: 'required_String'
         },
-        file_type: {
+        format: {
             doc: 'Path to where the directory is located to read from',
-            default: "file",
-            format: ["file", "import"]
+            default: "json_lines",
+            format: ["json_lines", "json_array"]
         }
     };
 }
