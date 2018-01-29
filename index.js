@@ -8,7 +8,7 @@ var readline = require('readline');
 
 var fileQueue = new Queue;
 
-function newReader(context, opConfig, jobConfig) {
+function newReader(context, opConfig, executionConfig) {
     if (opConfig.format === 'json_array') {
         return exportFn
     }
@@ -50,8 +50,8 @@ function exportFn(msg, logger) {
 
 }
 
-function newSlicer(context, job, retryData, slicerAnalytics, logger) {
-    var opConfig = getOpConfig(job.jobConfig, 'teraslice_file_import');
+function newSlicer(context, executionContext, retryData, logger) {
+    var opConfig = getOpConfig(executionContext.config, 'teraslice_file_import');
     var slicers = [];
     //TODO review performance implications
     getFileNames(logger, opConfig, fileQueue);
